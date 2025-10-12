@@ -1,15 +1,17 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { RateLimitService } from '../rate-limit/rate-limit.service';
 
 @Injectable()
 export class CodeService {
-    constructor(private readonly rateLimit: RateLimitService) { }
+    constructor(private readonly rateLimitService: RateLimitService) { }
 
     async analyzeCode(userId: string, code: string) {
-        const allowed = await this.rateLimit.consume(userId);
-        if (!allowed) throw new ForbiddenException('Kunlik limit tugagan.');
+        const allowed = this.rateLimitService.checkLimit(userId);
+        if (!allowed) {
+            return { error: 'Limit oshib ketgan. Keyinroq urinib ko‘ring.' };
+        }
 
-        // AI tahlil logikasi shu yerda bo‘ladi
-        return { feedback: `Kod tahlil qilindi: ${code.length} belgilar.` };
+        // bu yerda OpenAI yoki boshqa AI tekshiruv kodi
+        return { message: 'Kod tahlil qilindi ✅' };
     }
 }

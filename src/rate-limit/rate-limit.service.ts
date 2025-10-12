@@ -1,19 +1,31 @@
 import { Injectable } from '@nestjs/common';
-import { RateLimiterMemory } from 'rate-limiter-flexible';
 
 @Injectable()
 export class RateLimitService {
-    private limiter = new RateLimiterMemory({
-        points: 20, // 1 kunda 20 so‘rov
-        duration: 86400, // 1 kun
-    });
+    private limits = new Map<string, { count: number; lastReset: number }>();
+    private readonly LIMIT = 5; // har foydalanuvchiga 5 marta ruxsat
+    private readonly WINDOW = 60 * 60 * 1000; // 1 soat
 
-    async consume(userId: string) {
-        try {
-            await this.limiter.consume(userId);
+    checkLimit(userId: string): boolean {
+        const now = Date.now();
+        const userData = this.limits.get(userId);
+
+        if (!userData) {
+            this.limits.set(userId, { count: 1, lastReset: now });
             return true;
-        } catch {
-            return false;
         }
+
+        if (now - userData.lastReset > this.WINDOW) {
+            this.limits.set(userId, { count: 1, lastReset: now });
+            return true;
+        }
+
+        if (userData.count < this.LIMIT) {
+            userData.count++;
+            this.limits.set(userId, userData);
+            return true;
+        }
+
+        return false; // limitdan oshgan
     }
 }
