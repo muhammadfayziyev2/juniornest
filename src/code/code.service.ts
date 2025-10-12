@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import OpenAI from 'openai';
 import { ConfigService } from '@nestjs/config';
 import { AnalyzeCodeDto } from './dto/analyze-code.dto';
@@ -28,13 +28,37 @@ Tahlil:
 - Yaxshilash bo‘yicha tavsiyalar
 `;
 
-        const response = await this.openai.chat.completions.create({
-            model: 'gpt-4o-mini',
-            messages: [{ role: 'user', content: prompt }],
-            temperature: 0.3,
-        });
+        try {
+            const response = await this.openai.chat.completions.create({
+                model: 'gpt-4o-mini',
+                messages: [{ role: 'user', content: prompt }],
+                temperature: 0.3,
+            });
 
-        const feedback = response.choices[0].message.content;
-        return { feedback };
+            const feedback = response.choices[0].message.content;
+            return { feedback };
+
+        } catch (error) {
+            // 🔍 OpenAI xatosini tekshirish
+            console.error('❌ OpenAI xatosi:', error);
+
+            if (error.status === 429 || error.code === 'insufficient_quota') {
+                // 💳 Limit yoki balans tugagan holatda
+                throw new InternalServerErrorException(
+                    'Hisobingizdagi API limiti tugagan. Iltimos, OpenAI billing bo‘limida to‘lovni yangilang.',
+                );
+            }
+
+            if (error.status === 401) {
+                throw new InternalServerErrorException(
+                    'Noto‘g‘ri yoki muddati o‘tgan API kalit. Iltimos, .env faylni tekshiring.',
+                );
+            }
+
+            // Agar boshqa xato bo‘lsa — umumiy xabar
+            throw new InternalServerErrorException(
+                'AI bilan bog‘liq ichki xatolik yuz berdi. Keyinroq urinib ko‘ring.',
+            );
+        }
     }
 }
