@@ -10,6 +10,6 @@ export class CodeController {
     @Post('analyze')
     async analyze(@Body('code') code: string, @Request() req: any) {
         const userId = req.user.userId;
-        return this.codeService.analyzeCode(userId, code);
+        return this.codeService.analyzeCode(userId);
     }
 }

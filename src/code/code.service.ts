@@ -1,17 +1,40 @@
 import { Injectable } from '@nestjs/common';
-import { RateLimitService } from '../rate-limit/rate-limit.service';
+import OpenAI from 'openai';
+import { ConfigService } from '@nestjs/config';
+import { AnalyzeCodeDto } from './dto/analyze-code.dto';
 
 @Injectable()
 export class CodeService {
-    constructor(private readonly rateLimitService: RateLimitService) { }
+    private openai: OpenAI;
 
-    async analyzeCode(userId: string, code: string) {
-        const allowed = this.rateLimitService.checkLimit(userId);
-        if (!allowed) {
-            return { error: 'Limit oshib ketgan. Keyinroq urinib ko‘ring.' };
-        }
+    constructor(private configService: ConfigService) {
+        this.openai = new OpenAI({
+            apiKey: this.configService.get<string>('OPENAI_API_KEY'),
+        });
+    }
 
-        // bu yerda OpenAI yoki boshqa AI tekshiruv kodi
-        return { message: 'Kod tahlil qilindi ✅' };
+    async analyzeCode(dto: AnalyzeCodeDto) {
+        const { code } = dto;
+
+        const prompt = `
+Quyidagi dastur kodini tahlil qil:
+Kod:
+${code}
+
+Tahlil:
+- Professional darajasi
+- Yaxshi tomonlari
+- Xatoliklar yoki kamchiliklar
+- Yaxshilash bo‘yicha tavsiyalar
+`;
+
+        const response = await this.openai.chat.completions.create({
+            model: 'gpt-4o-mini',
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.3,
+        });
+
+        const feedback = response.choices[0].message.content;
+        return { feedback };
     }
 }
