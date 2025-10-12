@@ -6,7 +6,7 @@ import { AuthGuard } from '@nestjs/passport';
 export class CodeController {
     constructor(private readonly codeService: CodeService) { }
 
-    @UseGuards(AuthGuard('jwt'))
+    // @UseGuards(AuthGuard('jwt'))
     @Post('analyze')
     async analyze(@Body('code') code: string, @Request() req: any) {
         const userId = req.user.userId;
