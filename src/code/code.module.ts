@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { CodeController } from './code.controller';
 import { CodeService } from './code.service';
-import { RateLimitModule } from '../rate-limit/rate-limit.module'; 
+import { CodeController } from './code.controller';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-    imports: [RateLimitModule], 
+    imports: [ConfigModule],
     controllers: [CodeController],
     providers: [CodeService],
 })
