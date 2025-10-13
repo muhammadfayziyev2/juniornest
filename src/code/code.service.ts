@@ -39,11 +39,9 @@ Tahlil:
             return { feedback };
 
         } catch (error) {
-            // 🔍 OpenAI xatosini tekshirish
             console.error('❌ OpenAI xatosi:', error);
 
-            if (error.status === 429 || error.code === 'insufficient_quota') {
-                // 💳 Limit yoki balans tugagan holatda
+            if (error.status === 500 || error.code === 'insufficient_quota') {
                 throw new InternalServerErrorException(
                     'Hisobingizdagi API limiti tugagan. Iltimos, OpenAI billing bo‘limida to‘lovni yangilang.',
                 );
@@ -55,7 +53,6 @@ Tahlil:
                 );
             }
 
-            // Agar boshqa xato bo‘lsa — umumiy xabar
             throw new InternalServerErrorException(
                 'AI bilan bog‘liq ichki xatolik yuz berdi. Keyinroq urinib ko‘ring.',
             );
