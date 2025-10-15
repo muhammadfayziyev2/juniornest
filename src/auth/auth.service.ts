@@ -17,7 +17,8 @@ export class AuthService {
         if (existing) throw new BadRequestException('Bu email allaqachon ro‘yxatdan o‘tgan');
 
         const hashed = await bcrypt.hash(dto.password, 10);
-        const user = await this.usersService.createUser(dto.email, hashed);
+        const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(dto.email)}`;
+        const user = await this.usersService.createUser(dto.email, hashed, avatarUrl);
 
         const token = await this.generateToken(user.id, user.email);
         return { user, access_token: token };
