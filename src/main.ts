@@ -4,11 +4,10 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // 🔹 CORS ni yoqish (frontend bilan backendni bog‘lash uchun)
   app.enableCors({
     origin: [
-      'http://localhost:3000', // localda ishlaganda
-      'https://juniornest.vercel.app', // agar fronting Vercelda bo‘lsa shu manzilni yoz
+      'http://localhost:3000', 
+      'https://junioruz.vercel.app',
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
