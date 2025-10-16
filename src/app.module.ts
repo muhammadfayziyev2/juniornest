@@ -5,9 +5,11 @@ import { CodeModule } from './code/code.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { User } from './users/user.entity';
+import { BlacklistedToken } from './auth/entities/blacklisted-token.entity';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([User, BlacklistedToken]),
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'postgres',
