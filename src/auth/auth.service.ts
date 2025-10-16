@@ -2,6 +2,9 @@ import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { BlacklistedToken } from './entities/blacklisted-token.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
@@ -10,6 +13,8 @@ export class AuthService {
     constructor(
         private readonly usersService: UsersService,
         private readonly jwtService: JwtService,
+        @InjectRepository(BlacklistedToken)
+        private readonly blacklistRepo: Repository<BlacklistedToken>,
     ) { }
 
     async register(dto: RegisterDto) {
@@ -33,6 +38,16 @@ export class AuthService {
 
         const token = await this.generateToken(user.id, user.email);
         return { user, access_token: token };
+    }
+
+    async logout(token: string) {
+        await this.blacklistRepo.save({ token });
+        return { message: 'Foydalanuvchi tizimdan chiqdi' };
+    }
+
+    async isTokenBlacklisted(token: string): Promise<boolean> {
+        const exists = await this.blacklistRepo.findOne({ where: { token } });
+        return !!exists;
     }
 
     async generateToken(userId: string, email: string) {
