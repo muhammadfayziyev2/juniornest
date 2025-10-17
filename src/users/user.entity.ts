@@ -17,4 +17,9 @@ export class User {
     @Column({ nullable: true })
     avatarUrl: string;
 
+    @Column({ type: 'int', default: 10 })
+    daily_limit: number;
+
+    @Column({ type: 'date', default: () => 'CURRENT_DATE' })
+    last_request_date: Date;
 }
