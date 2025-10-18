@@ -19,7 +19,7 @@ import { BlacklistedToken } from './auth/entities/blacklisted-token.entity';
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
       entities: [User],
-      autoLoadEntities: true,
+      autoLoadEntities: true, 
       synchronize: true,
       ssl: {
         rejectUnauthorized: false, 
