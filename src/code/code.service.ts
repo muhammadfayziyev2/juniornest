@@ -27,14 +27,20 @@ export class CodeService {
             const user = await this.usersService.findByEmail(decoded.email);
             if (!user) throw new ForbiddenException('Foydalanuvchi topilmadi');
 
-            const today = new Date().toISOString().split('T')[0];
-            const lastRequest = user.last_request_date?.toISOString?.().split('T')[0];
-
+            const today = new Date().toISOString().split("T")[0];
+            const lastRequest =
+                user.last_request_date instanceof Date
+                    ? user.last_request_date.toISOString().split("T")[0]
+                    : user.last_request_date
+                        ? new Date(user.last_request_date).toISOString().split("T")[0]
+                        : null;
+                        
             if (lastRequest !== today) {
                 user.daily_limit = 10;
-                user.last_request_date = new Date(today);
+                user.last_request_date = new Date();
                 await this.usersService.save(user);
             }
+
 
             if (user.daily_limit <= 0) {
                 throw new ForbiddenException('Sizning bugungi limit tugagan. Iltimos, ertaga urinib ko‘ring.');
