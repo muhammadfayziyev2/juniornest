@@ -34,7 +34,7 @@ export class CodeService {
                     : user.last_request_date
                         ? new Date(user.last_request_date).toISOString().split("T")[0]
                         : null;
-                        
+
             if (lastRequest !== today) {
                 user.daily_limit = 10;
                 user.last_request_date = new Date();
@@ -89,7 +89,3 @@ Tahlil:
         }
     }
 }
-
-
-
-
