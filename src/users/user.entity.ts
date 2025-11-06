@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { Analysis } from 'src/code/entities/analysis.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
 
 @Entity('users')
 export class User {
@@ -22,4 +23,7 @@ export class User {
 
     @Column({ type: 'date', default: () => 'CURRENT_DATE' })
     last_request_date: Date;
+
+    @OneToMany(() => Analysis, (analysis) => analysis.user)
+    analyses: Analysis[];
 }
