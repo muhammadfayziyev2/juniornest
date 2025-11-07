@@ -23,7 +23,7 @@ export class AuthService {
 
         const hashed = await bcrypt.hash(dto.password, 10);
         const avatarUrl = `https://api.dicebear.com/7.x/avataaars-neutral/svg?seed=${encodeURIComponent(dto.email)}`;
-        const user = await this.usersService.createUser(dto.email, hashed, avatarUrl);
+        const user = await this.usersService.createUser(dto.email, hashed, avatarUrl, dto.nameUser);
 
         const token = await this.generateToken(user.id, user.email);
         return { user, access_token: token };
