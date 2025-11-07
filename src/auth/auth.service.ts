@@ -26,10 +26,8 @@ export class AuthService {
         const user = await this.usersService.createUser(dto.email, hashed, avatarUrl, dto.nameUser);
 
         const token = await this.generateToken(user.id, user.email);
-
-        const { password, ...userWithoutPassword } = user;
-
-        return { user: userWithoutPassword, access_token: token };
+        
+        return { user, access_token: token };
     }
 
     async login(dto: LoginDto) {
