@@ -11,12 +11,12 @@ export class User {
     @Column()
     password: string;
 
-    @Column()
-    nameUser:string;
+    @Column({ nullable: true })
+    nameUser: string;
 
     @CreateDateColumn()
     createdAt: Date;
-    
+
     @Column({ nullable: true })
     avatarUrl: string;
 
