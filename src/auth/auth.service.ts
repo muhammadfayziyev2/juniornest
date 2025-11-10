@@ -65,13 +65,18 @@ export class AuthService {
     // 🔹 Refresh token orqali yangi token
     async refresh(oldRefreshToken: string) {
         try {
-            const payload = this.jwtService.verify(oldRefreshToken);
-            const { accessToken, refreshToken } = await this.generateTokens(payload.sub, payload.email);
+            const payload = this.jwtService.verify(oldRefreshToken); // agar token yaroqsiz bo‘lsa → error
+            const user = await this.usersService.findById(payload.sub);
+            if (!user) throw new UnauthorizedException('User topilmadi');
+
+            const { accessToken, refreshToken } = await this.generateTokens(user.id, user.email);
             return { accessToken, refreshToken };
         } catch (err) {
+            console.error(err);
             throw new UnauthorizedException('Refresh token yaroqsiz');
         }
     }
+
 
     // 🔹 Validate refresh token va user
     async validateRefreshToken(token: string) {
