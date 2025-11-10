@@ -25,9 +25,9 @@ export class AuthService {
         const avatarUrl = `https://api.dicebear.com/7.x/avataaars-neutral/svg?seed=${encodeURIComponent(dto.email)}`;
         const user = await this.usersService.createUser(dto.email, hashed, avatarUrl, dto.nameUser);
 
-        const token = await this.generateToken(user.id, user.email);
-        
-        return { user, access_token: token };
+        const { accessToken, refreshToken } = await this.generateTokens(user.id, user.email);
+
+        return { user, accessToken, refreshToken };
     }
 
     async login(dto: LoginDto) {
@@ -37,8 +37,9 @@ export class AuthService {
         const match = await bcrypt.compare(dto.password, user.password);
         if (!match) throw new UnauthorizedException('Parol noto‘g‘ri');
 
-        const token = await this.generateToken(user.id, user.email);
-        return { user, access_token: token };
+        const { accessToken, refreshToken } = await this.generateTokens(user.id, user.email);
+
+        return { user, accessToken, refreshToken };
     }
 
     async logout(token: string) {
@@ -51,7 +52,20 @@ export class AuthService {
         return !!exists;
     }
 
-    async generateToken(userId: string, email: string) {
-        return this.jwtService.sign({ sub: userId, email });
+    async generateTokens(userId: string, email: string) {
+        const payload = { sub: userId, email };
+        const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
+        const refreshToken = this.jwtService.sign(payload, { expiresIn: '30d' });
+        return { accessToken, refreshToken };
+    }
+
+    async refresh(oldRefreshToken: string) {
+        try {
+            const payload = this.jwtService.verify(oldRefreshToken);
+            const { accessToken, refreshToken } = await this.generateTokens(payload.sub, payload.email);
+            return { accessToken, refreshToken };
+        } catch (err) {
+            throw new UnauthorizedException('Refresh token yaroqsiz');
+        }
     }
 }
