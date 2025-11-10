@@ -60,14 +60,27 @@ export class AuthController {
     // 🔹 Refresh token orqali access token olish
     @Post('refresh')
     async refresh(@Req() req, @Res({ passthrough: true }) res: Response) {
-        const refreshToken = req.cookies.refreshToken;
-        if (!refreshToken) throw new UnauthorizedException('Token yo‘q');
+        try {
+            const oldRefreshToken = req.cookies.refreshToken;
+            if (!oldRefreshToken) throw new UnauthorizedException('Refresh token yo‘q');
 
-        const user = await this.authService.validateRefreshToken(refreshToken);
-        if (!user) throw new UnauthorizedException('Refresh token yaroqsiz');
+            const { accessToken, refreshToken } = await this.authService.refresh(oldRefreshToken);
 
-        const accessToken = await this.authService.generateTokens(user.id, user.email);
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                path: '/auth',
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+            });
 
-        return { accessToken, user };
+            const user = await this.authService.validateRefreshToken(refreshToken);
+
+            return { accessToken, user };
+        } catch (err) {
+            console.error(err); // 🔹 Bu log server console-da ko‘rinadi
+            throw new UnauthorizedException('Refresh token yaroqsiz yoki server xato berdi');
+        }
     }
+
 }
