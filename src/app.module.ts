@@ -9,23 +9,16 @@ import { BlacklistedToken } from './auth/entities/blacklisted-token.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, BlacklistedToken]),
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT!, 10),
-      username: process.env.DB_USER,
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME,
-      entities: [User],
-      autoLoadEntities: true, 
-      synchronize: true,
+      url: process.env.DATABASE_URL, // Railway URL shu yerda ishlatiladi
+      autoLoadEntities: true,
+      synchronize: true, // ⚠️ faqat development uchun! Prod uchun false qiling
       ssl: {
-        rejectUnauthorized: false, 
+        rejectUnauthorized: false, // Railway SSL ni talab qiladi
       },
     }),
-
     UsersModule,
     AuthModule,
     CodeModule,
