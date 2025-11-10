@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req, UseGuards, Res } from '@nestjs/common';
+import { Controller, Post, Body, Req, Res, UseGuards, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -9,31 +9,65 @@ import type { Response } from 'express';
 export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
+    // 🔹 Register
     @Post('register')
     async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response) {
         const user = await this.authService.register(dto);
 
-        const { accessToken, refreshToken } = await this.authService.login(dto);
+        // Login qilamiz va access + refresh token olamiz
+        const { accessToken, refreshToken } = await this.authService.login({
+            email: dto.email,
+            password: dto.password
+        });
+
+        // Refresh tokenni HttpOnly cookie sifatida yuborish
         res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,                    
+            httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',                  
-            path: '/auth',                   
-            maxAge: 30 * 24 * 60 * 60 * 1000,   
+            sameSite: 'lax',
+            path: '/auth',
+            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 kun
         });
 
         return { accessToken, user };
     }
+
+    // 🔹 Login
     @Post('login')
-    async login(@Body() dto: LoginDto) {
-        return this.authService.login(dto);
+    async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
+        const { accessToken, refreshToken, user } = await this.authService.login(dto);
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/auth',
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+
+        return { accessToken, user };
     }
 
+    // 🔹 Logout
     @UseGuards(JwtAuthGuard)
     @Post('logout')
     async logout(@Req() req) {
         const token = req.headers.authorization?.split(' ')[1];
-        return this.authService.logout(token);
+        await this.authService.logout(token);
+        return { message: 'Foydalanuvchi tizimdan chiqdi' };
     }
 
+    // 🔹 Refresh token orqali access token olish
+    @Post('refresh')
+    async refresh(@Req() req, @Res({ passthrough: true }) res: Response) {
+        const refreshToken = req.cookies.refreshToken;
+        if (!refreshToken) throw new UnauthorizedException('Token yo‘q');
+
+        const user = await this.authService.validateRefreshToken(refreshToken);
+        if (!user) throw new UnauthorizedException('Refresh token yaroqsiz');
+
+        const accessToken = await this.authService.generateTokens(user.id, user.email);
+
+        return { accessToken, user };
+    }
 }
