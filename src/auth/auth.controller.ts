@@ -11,22 +11,17 @@ export class AuthController {
 
     @Post('register')
     async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response) {
-        // 1️⃣ Foydalanuvchini ro‘yxatdan o‘tkazish
         const user = await this.authService.register(dto);
 
-        // 2️⃣ Ro‘yxatdan o‘tgan foydalanuvchini darhol login qilish
         const { accessToken, refreshToken } = await this.authService.login(dto);
-
-        // 3️⃣ Refresh tokenni HttpOnly cookie sifatida jo‘natish
         res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,                     // JS orqali o‘qib bo‘lmaydi
-            secure: process.env.NODE_ENV === 'production', // HTTPS faqat productionda
-            sameSite: 'lax',                    // CSRF dan himoya
-            path: '/auth',                      // cookie faqat /auth route’larda ishlaydi
-            maxAge: 30 * 24 * 60 * 60 * 1000,   // 30 kun
+            httpOnly: true,                    
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',                  
+            path: '/auth',                   
+            maxAge: 30 * 24 * 60 * 60 * 1000,   
         });
 
-        // 4️⃣ Access tokenni javobga qaytarish (frontend memory’da saqlanadi)
         return { accessToken, user };
     }
     @Post('login')
