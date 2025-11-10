@@ -70,7 +70,7 @@ export class AuthService {
             if (!user) throw new UnauthorizedException('User topilmadi');
 
             const { accessToken, refreshToken } = await this.generateTokens(user.id, user.email);
-            return { accessToken, refreshToken };
+            return { accessToken, refreshToken, user };
         } catch (err) {
             console.error(err);
             throw new UnauthorizedException('Refresh token yaroqsiz');

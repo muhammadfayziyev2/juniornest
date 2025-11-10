@@ -64,7 +64,7 @@ export class AuthController {
 
         if (!oldRefreshToken) throw new UnauthorizedException('Refresh token yo‘q');
 
-        const { accessToken, refreshToken } = await this.authService.refresh(oldRefreshToken);
+        const { accessToken, refreshToken, user } = await this.authService.refresh(oldRefreshToken);
 
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
@@ -74,7 +74,7 @@ export class AuthController {
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
 
-        return { accessToken };
+        return { accessToken, user };
     }
 
 
