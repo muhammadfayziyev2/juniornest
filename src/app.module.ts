@@ -17,7 +17,7 @@ import { BlacklistedToken } from './auth/entities/blacklisted-token.entity';
       port: parseInt(process.env.DB_PORT!, 10),
       username: process.env.DB_USER,
       password: process.env.DB_PASS,
-      database: process.env.DB_NAME, 
+      database: process.env.DB_NAME,
       entities: [User],
       autoLoadEntities: true, 
       synchronize: true,
