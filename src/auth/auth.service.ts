@@ -17,7 +17,6 @@ export class AuthService {
         private readonly blacklistRepo: Repository<BlacklistedToken>,
     ) { }
 
-    // 🔹 Register
     async register(dto: RegisterDto) {
         const existing = await this.usersService.findByEmail(dto.email);
         if (existing) throw new BadRequestException('Bu email allaqachon ro‘yxatdan o‘tgan');
@@ -30,7 +29,6 @@ export class AuthService {
         return { user, accessToken, refreshToken };
     }
 
-    // 🔹 Login
     async login(dto: LoginDto) {
         const user = await this.usersService.findByEmail(dto.email);
         if (!user) throw new UnauthorizedException('Foydalanuvchi topilmadi');
@@ -42,19 +40,16 @@ export class AuthService {
         return { user, accessToken, refreshToken };
     }
 
-    // 🔹 Logout
     async logout(token: string) {
         await this.blacklistRepo.save({ token });
         return { message: 'Foydalanuvchi tizimdan chiqdi' };
     }
 
-    // 🔹 Tekshirish, blacklist
     async isTokenBlacklisted(token: string): Promise<boolean> {
         const exists = await this.blacklistRepo.findOne({ where: { token } });
         return !!exists;
     }
 
-    // 🔹 Generate access + refresh token
     async generateTokens(userId: string, email: string) {
         const payload = { sub: userId, email };
         const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
@@ -62,10 +57,9 @@ export class AuthService {
         return { accessToken, refreshToken };
     }
 
-    // 🔹 Refresh token orqali yangi token
     async refresh(oldRefreshToken: string) {
         try {
-            const payload = this.jwtService.verify(oldRefreshToken); // agar token yaroqsiz bo‘lsa → error
+            const payload = this.jwtService.verify(oldRefreshToken); 
             const user = await this.usersService.findById(payload.sub);
             if (!user) throw new UnauthorizedException('User topilmadi');
 
@@ -77,8 +71,6 @@ export class AuthService {
         }
     }
 
-
-    // 🔹 Validate refresh token va user
     async validateRefreshToken(token: string) {
         try {
             const payload = this.jwtService.verify(token);

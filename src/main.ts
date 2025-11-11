@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.use(cookieParser()); // 👈 cookie parser qo‘shildi
+  app.use(cookieParser());
 
   app.enableCors({
     origin: [
@@ -13,7 +13,7 @@ async function bootstrap() {
       'https://junioruz.vercel.app',
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true, // 👈 cookie yuborish uchun
+    credentials: true, 
   });
 
   const port = process.env.PORT || 8000;
