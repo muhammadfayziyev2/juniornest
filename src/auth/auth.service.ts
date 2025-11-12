@@ -50,6 +50,13 @@ export class AuthService {
         await this.blacklistRepo.save({ token: refreshToken });
         return { message: 'Parol to‘g‘ri, foydalanuvchi chiqdi' };
     }
+    verifyRefreshToken(token: string) {
+        try {
+            return this.jwtService.verify(token);
+        } catch (err) {
+            throw new UnauthorizedException('Refresh token yaroqsiz');
+        }
+    }
 
     async isTokenBlacklisted(token: string): Promise<boolean> {
         const exists = await this.blacklistRepo.findOne({ where: { token } });

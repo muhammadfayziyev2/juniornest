@@ -7,7 +7,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) { }
+    constructor(private readonly authService: AuthService,) { }
 
     @Post('register')
     async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response) {
@@ -45,17 +45,17 @@ export class AuthController {
     }
 
     // ✅ Logout (parol bilan)
-    @UseGuards(JwtAuthGuard)
     @Post('logout')
     async logout(
         @Req() req: Request,
         @Body() body: { password: string },
         @Res({ passthrough: true }) res: Response,
     ) {
-        const refreshToken = req.cookies?.refreshToken;
+        const refreshToken = (req as any).cookies?.refreshToken;
         if (!refreshToken) throw new UnauthorizedException('Refresh token yo‘q');
 
-        const userId = (req as any).user.sub;
+        const payload = this.authService.verifyRefreshToken(refreshToken);
+        const userId = payload.sub;
 
         await this.authService.logoutWithPassword(userId, body.password, refreshToken);
 
@@ -67,6 +67,7 @@ export class AuthController {
 
         return { message: 'Tizimdan muvaffaqiyatli chiqildi' };
     }
+
 
     @Post('refresh')
     async refresh(@Req() req, @Res({ passthrough: true }) res: Response) {
