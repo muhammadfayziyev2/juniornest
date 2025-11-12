@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import type { Response, Request } from 'express';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -43,26 +44,28 @@ export class AuthController {
         return { accessToken, user };
     }
 
+    // ✅ Logout (parol bilan)
+    @UseGuards(JwtAuthGuard)
     @Post('logout')
     async logout(
         @Req() req: Request,
+        @Body() body: { password: string },
         @Res({ passthrough: true }) res: Response,
-        @Body('password') password: string
     ) {
         const refreshToken = req.cookies?.refreshToken;
-        if (!refreshToken) {
-            throw new UnauthorizedException('Refresh token topilmadi');
-        }
+        if (!refreshToken) throw new UnauthorizedException('Refresh token yo‘q');
 
-        // refresh token orqali foydalanuvchini topamiz
-        const payload = await this.authService.verifyRefresh(refreshToken);
-        const user = await this.authService.validateUserByPassword(payload.email, password);
+        const userId = (req as any).user.sub;
 
-        // cookie’ni o‘chir
-        res.clearCookie('refreshToken', { path: '/' });
+        await this.authService.logoutWithPassword(userId, body.password, refreshToken);
 
-        // logout javobi
-        return { message: `Foydalanuvchi ${user.email} tizimdan chiqdi` };
+        res.clearCookie('refreshToken', {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+        });
+
+        return { message: 'Tizimdan muvaffaqiyatli chiqildi' };
     }
 
     @Post('refresh')

@@ -40,24 +40,21 @@ export class AuthService {
         return { user, accessToken, refreshToken };
     }
 
-    async verifyRefresh(token: string) {
-        try {
-            return this.jwtService.verify(token);
-        } catch {
-            throw new UnauthorizedException('Refresh token noto‘g‘ri yoki muddati o‘tgan');
-        }
-    }
-
-    async validateUserByPassword(email: string, password: string) {
-        const user = await this.usersService.findByEmail(email);
+    async logoutWithPassword(userId: string, password: string, refreshToken: string) {
+        const user = await this.usersService.findById(userId);
         if (!user) throw new UnauthorizedException('Foydalanuvchi topilmadi');
 
         const match = await bcrypt.compare(password, user.password);
         if (!match) throw new UnauthorizedException('Parol noto‘g‘ri');
 
-        return user;
+        await this.blacklistRepo.save({ token: refreshToken });
+        return { message: 'Parol to‘g‘ri, foydalanuvchi chiqdi' };
     }
 
+    async isTokenBlacklisted(token: string): Promise<boolean> {
+        const exists = await this.blacklistRepo.findOne({ where: { token } });
+        return !!exists;
+    }
 
     async generateTokens(userId: string, email: string) {
         const payload = { sub: userId, email };
