@@ -40,10 +40,24 @@ export class AuthService {
         return { user, accessToken, refreshToken };
     }
 
-    async logout(token: string) {
-        await this.blacklistRepo.save({ token });
-        return { message: 'Foydalanuvchi tizimdan chiqdi' };
+    async verifyRefresh(token: string) {
+        try {
+            return this.jwtService.verify(token);
+        } catch {
+            throw new UnauthorizedException('Refresh token noto‘g‘ri yoki muddati o‘tgan');
+        }
     }
+
+    async validateUserByPassword(email: string, password: string) {
+        const user = await this.usersService.findByEmail(email);
+        if (!user) throw new UnauthorizedException('Foydalanuvchi topilmadi');
+
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) throw new UnauthorizedException('Parol noto‘g‘ri');
+
+        return user;
+    }
+
 
     async isTokenBlacklisted(token: string): Promise<boolean> {
         const exists = await this.blacklistRepo.findOne({ where: { token } });

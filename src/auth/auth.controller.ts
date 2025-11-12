@@ -2,8 +2,7 @@ import { Controller, Post, Body, Req, Res, UseGuards, UnauthorizedException } fr
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { JwtAuthGuard } from './jwt-auth.guard';
-import type { Response } from 'express';
+import type { Response, Request } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -44,12 +43,26 @@ export class AuthController {
         return { accessToken, user };
     }
 
-    @UseGuards(JwtAuthGuard)
     @Post('logout')
-    async logout(@Req() req) {
-        const token = req.headers.authorization?.split(' ')[1];
-        await this.authService.logout(token);
-        return { message: 'Foydalanuvchi tizimdan chiqdi' };
+    async logout(
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response,
+        @Body('password') password: string
+    ) {
+        const refreshToken = req.cookies?.refreshToken;
+        if (!refreshToken) {
+            throw new UnauthorizedException('Refresh token topilmadi');
+        }
+
+        // refresh token orqali foydalanuvchini topamiz
+        const payload = await this.authService.verifyRefresh(refreshToken);
+        const user = await this.authService.validateUserByPassword(payload.email, password);
+
+        // cookie’ni o‘chir
+        res.clearCookie('refreshToken', { path: '/' });
+
+        // logout javobi
+        return { message: `Foydalanuvchi ${user.email} tizimdan chiqdi` };
     }
 
     @Post('refresh')
