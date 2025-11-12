@@ -59,11 +59,6 @@ export class AuthService {
     }
 
 
-    async isTokenBlacklisted(token: string): Promise<boolean> {
-        const exists = await this.blacklistRepo.findOne({ where: { token } });
-        return !!exists;
-    }
-
     async generateTokens(userId: string, email: string) {
         const payload = { sub: userId, email };
         const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
