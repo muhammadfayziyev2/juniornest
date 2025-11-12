@@ -61,9 +61,10 @@ export class AuthController {
         await this.authService.logoutWithPassword(userId, body.password, refreshToken);
 
         // Cookie o‘chirish
-        res.clearCookie('refreshToken', {
+        res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
-            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         });
 
         return { message: 'Tizimdan muvaffaqiyatli chiqildi' };
