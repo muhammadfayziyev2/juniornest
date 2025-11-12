@@ -63,7 +63,6 @@ export class AuthController {
         // Cookie o‘chirish
         res.clearCookie('refreshToken', {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
         });
 
