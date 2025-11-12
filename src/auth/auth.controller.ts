@@ -55,7 +55,10 @@ export class AuthController {
         if (!refreshToken) throw new UnauthorizedException('Refresh token yo‘q');
 
         const payload = this.authService.verifyRefreshToken(refreshToken);
-        const userId = (req as any).user.sub;
+        const user = (req as any).user;
+        if (!user) throw new UnauthorizedException('Foydalanuvchi topilmadi yoki token yo‘q');
+        const userId = user.sub;
+
 
         await this.authService.logoutWithPassword(userId, body.password, refreshToken);
 
