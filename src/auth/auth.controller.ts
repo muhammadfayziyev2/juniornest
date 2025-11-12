@@ -45,34 +45,30 @@ export class AuthController {
     }
 
     // ✅ Logout (parol bilan)
-    @UseGuards(JwtAuthGuard)
     @Post('logout')
     async logout(
-        @Req() req: any, // 'any' ishlatish osonroq, yoki cookie-parser bilan to‘g‘ri tip qo‘shish
+        @Req() req: Request,
         @Body() body: { password: string },
         @Res({ passthrough: true }) res: Response,
     ) {
         const refreshToken = req.cookies?.refreshToken;
         if (!refreshToken) throw new UnauthorizedException('Refresh token yo‘q');
 
-        // Refresh tokenni tekshirish
-        const user = await this.authService.validateRefreshToken(refreshToken);
-        if (!user) throw new UnauthorizedException('Foydalanuvchi topilmadi');
+        // Cookie orqali foydalanuvchi ID olish uchun refresh tokenni tekshir
+        const payload = this.authService.verifyRefreshToken(refreshToken);
+        const userId = payload.sub;
 
-        // Parolni tekshirish va logout
-        await this.authService.logoutWithPassword(user.id, body.password, refreshToken);
+        await this.authService.logoutWithPassword(userId, body.password, refreshToken);
 
-        // Cookie ni tozalash
+        // Cookie o‘chirish
         res.clearCookie('refreshToken', {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            sameSite: 'lax',
         });
 
         return { message: 'Tizimdan muvaffaqiyatli chiqildi' };
     }
-
-
 
     @Post('refresh')
     async refresh(@Req() req, @Res({ passthrough: true }) res: Response) {

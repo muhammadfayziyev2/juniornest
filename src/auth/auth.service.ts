@@ -47,9 +47,12 @@ export class AuthService {
         const match = await bcrypt.compare(password, user.password);
         if (!match) throw new UnauthorizedException('Parol noto‘g‘ri');
 
+        // Refresh tokenni blacklistga qo‘shish
         await this.blacklistRepo.save({ token: refreshToken });
-        return { message: 'Parol to‘g‘ri, foydalanuvchi chiqdi' };
+
+        return { message: 'Parol to‘g‘ri, foydalanuvchi tizimdan chiqdi' };
     }
+
     verifyRefreshToken(token: string) {
         try {
             return this.jwtService.verify(token);
