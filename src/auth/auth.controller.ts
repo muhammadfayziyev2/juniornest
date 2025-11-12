@@ -51,11 +51,11 @@ export class AuthController {
         @Body() body: { password: string },
         @Res({ passthrough: true }) res: Response,
     ) {
-        const refreshToken = (req as any).cookies?.refreshToken;
+        const refreshToken = req.cookies?.refreshToken;
         if (!refreshToken) throw new UnauthorizedException('Refresh token yo‘q');
 
         const payload = this.authService.verifyRefreshToken(refreshToken);
-        const userId = payload.sub;
+        const userId = (req as any).user.sub;
 
         await this.authService.logoutWithPassword(userId, body.password, refreshToken);
 
