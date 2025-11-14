@@ -41,9 +41,8 @@ export class CodeService {
                 await this.usersService.save(user);
             }
 
-
             if (user.daily_limit <= 0) {
-                throw new ForbiddenException('Sizning bugungi limit tugagan. Iltimos, ertaga urinib ko‘ring.');
+                throw new ForbiddenException('Sizning bugungi limit tugadi, Cheksiz limit olish uchun iltimos "PLUS" tarifini harid qiling!');
             }
 
             const prompt = `
